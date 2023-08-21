@@ -1,0 +1,34 @@
+#1 security is most important
+under security, the most important thing is the protection of the user password
+for security, i chose django and react because of the tools the mature django has for security and the way react
+loads the document reduces the chance cross site scripting attacks
+as well for security, i validated every input and used a password field for the password
+
+
+
+react and django
+mongo (doens't matter)
+
+let's encrypt for Django HTTPS
+
+tools:
+OWASP ZAP
+django-secure
+Web Application Firewall (WAF)
+
+backend:
+features:
+send money
+(sign transactions client side, limit risk of XSS through protocol and tech stack (information hiding),
+encrypt with https, data validation and sanitization with code)
+
+
+client side:
+features:
+search address # 123
+(input public address and see new matching DB addresses in dropdown)
+view money
+(click address to show address info on screen)
+send money
+(3 inputs: amount, recipient, send button
+then ask for private key before send (don't store))

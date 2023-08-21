@@ -1,0 +1,100 @@
+// App.scss
+
+.container {
+    background-color: black;
+    color: gold;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+
+    header {
+        text-align: center;
+        font-weight: bold;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .react-select__control {
+            border-color: gold !important;
+            color: black;
+
+            &--is-focused {
+                border-color: gold !important;
+                box-shadow: 0 0 0 1px gold !important;
+            }
+        }
+
+        .react-select__value-container {
+            color: black;
+        }
+
+        .react-select__menu {
+            color: black;
+        }
+
+        .react-select__option {
+            color: black;
+
+            &--is-focused {
+                background-color: gold;
+                color: black;
+            }
+
+            &--is-selected {
+                background-color: gold;
+                color: black;
+            }
+        }
+
+        input {
+            border: 1px solid gold;
+            padding: 10px;
+            color: black;
+            background-color: white;
+            font-size: 16px;
+
+            &::placeholder {
+                color: #aaa;
+            }
+
+            &:focus {
+                outline: none;
+                border-color: gold;
+            }
+        }
+
+        #privateKeyInput {
+            border-width: 2px;
+        }
+    }
+
+    button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border: 1px solid gold;
+        background: linear-gradient(black, deepgray);
+        color: gold;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s;
+
+        &:hover {
+            background: linear-gradient(deepgray, black);
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    footer {
+        font-size: 14px;
+        margin-top: 30px;
+        text-align: center;
+    }
+}
