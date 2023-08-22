@@ -211,7 +211,6 @@ function BitcoinTransaction() {
         })
         .then(response => response.json())
         .then(data => {
-            setLoading(false);
 
             if (data.status === 'success') {
                 if (data.confirmations < 1)
@@ -221,6 +220,7 @@ function BitcoinTransaction() {
                 }
                 else
                 {
+                    setLoading(false);
                     alert("Transaction confirmed!");
                     console.log("Transaction confirmed");
                 }
