@@ -18,16 +18,23 @@ from .models import Address
 from decouple import config
 from bitcoin import deserialize
 
+
 def get_txid_from_signed_transaction(signed_hex):
     tx_data = deserialize(signed_hex)
-    print(tx_data)
-    return tx_data['ins'][0]['outpoint']['hash']
+    try:
+        tx_id = tx_data['ins'][0]['outpoint']['hash']
+    except Exception as e:
+        print(e)
+        raise KeyError("There is something wrong with the signed transaction")
+    return tx_id
+
 
 
 def validate_address(address):
     try:
         return blockcypher.utils.is_valid_address_for_coinsymbol(address, coin_symbol=config('COIN_SYMBOL'))
-    except:
+    except AssertionError as e:
+        print(e)
         raise AssertionError("Invalid")
 
 
@@ -62,7 +69,8 @@ def generate_unsigned_transaction(source_address, amount_in_btc, to_address):
 
 def is_valid_bitcoin_address(address):
     if not is_valid_bitcoin_address_format(address) or not blockcypher.utils.is_valid_address_for_coinsymbol(address,
-                                                                                                             coin_symbol=config('COIN_SYMBOL')):
+                                                                                                             coin_symbol=config(
+                                                                                                                 'COIN_SYMBOL')):
         return False
     return True
 
@@ -79,6 +87,7 @@ def is_valid_amount(amount):
         sanitized_amount = float(amount)
         return sanitized_amount
     except ValueError as e:
+        print(e)
         return False
 
 
@@ -112,19 +121,18 @@ def get_transaction_data(request):
 
 def is_valid_signed_transaction(hex_signed_transaction):
     try:
-        # Deserialize the transaction
         tx = CTransaction.deserialize(bytes.fromhex(hex_signed_transaction))
 
-        # Basic check for inputs and their scriptSig
         if len(tx.vin) == 0:
             return False
 
         for txin in tx.vin:
-            if len(txin.scriptSig) == 0:  # Check if scriptSig is present for the input
+            if len(txin.scriptSig) == 0:
                 return False
 
         return True
-    except (ValidationError, ValueError):  # If there's an error in deserialization or format
+    except (ValidationError, ValueError) as e:
+        print(e)
         return False
 
 
@@ -144,10 +152,12 @@ def broadcast_signed_transaction(request):
     try:
         # Broadcast the signed transaction to the network
         if not blockcypher.pushtx(signed_tx, coin_symbol=config('COIN_SYMBOL'),
-                                        api_key=settings.BLOCKCYPHER_API_KEY):
+                                  api_key=settings.BLOCKCYPHER_API_KEY):
             return JsonResponse({"status": "error", "message": "Error broadcasting the transaction"})
-        return JsonResponse({"status": "success", "tx_details": get_txid_from_signed_transaction(signed_tx)})
+        hash = get_txid_from_signed_transaction(signed_tx)
+        return JsonResponse({"status": "success", "tx_details": hash})
     except Exception as e:
+        print(e)
         return JsonResponse({"status": "error", "message": "Error broadcasting the transaction"})
 
 
@@ -163,13 +173,14 @@ def create_address(request):
     address = request.data.get('address')
     try:
         if not validate_address(address):
-            return Response({"success": False, "message": "Invalid"})
-    except AssertionError:
-        return Response({"success": False, "message": "Invalid"})
+            return Response({"success": False, "message": "Invalid address"})
+    except AssertionError as e:
+        print(e)
+        return Response({"success": False, "message": "Invalid address"})
     address_fields = fetch_new_data_for_address(address)
     try:
         Address.objects.get(address=address)
-        return Response({"success": False, "message": "Already exists!"})
+        return Response({"success": False, "message": "Address already exists!"})
     except Address.DoesNotExist:
         pass
 
@@ -182,9 +193,10 @@ def get_address_details(request, bookId):
     try:
         try:
             if not validate_address(bookId):
-                return Response({"success": False, "message": "Invalid"})
-        except AssertionError:
-            return Response({"success": False, "message": "Invalid"})
+                return Response({"success": False, "message": "Invalid address"})
+        except AssertionError as e:
+            print(e)
+            return Response({"success": False, "message": "Invalid address"})
         book = Address.objects.get(address=bookId)
 
         if datetime.now(timezone.utc) - book.created_at > timedelta(minutes=30):
@@ -196,9 +208,11 @@ def get_address_details(request, bookId):
 
         serializer = AddressSerializer(book)
         return Response(serializer.data)
-    except Address.DoesNotExist:
+    except Address.DoesNotExist as e:
+        print(e)
         return Response({"error": "Address not found"}, status=404)
-    except AssertionError:
+    except AssertionError as e:
+        print(e)
         return Response({"error": "Address not valid"}, status=404)
 
 
@@ -206,6 +220,7 @@ def fetch_new_data_for_address(bookId):
     address_details = blockcypher.get_address_details(address=bookId, coin_symbol=config('COIN_SYMBOL'))
     address_fields = {key: val for key, val in address_details.items() if key not in ['txrefs', 'unconfirmed_txrefs']}
     return address_fields
+
 
 def is_valid_tx_hash(tx_hash):
     # Check if the length is 64 characters
@@ -216,13 +231,13 @@ def is_valid_tx_hash(tx_hash):
     try:
         int(tx_hash, 16)
         return True
-    except ValueError:
+    except ValueError as e:
+        print(e)
         return False
 
 
 @require_POST
 def get_confirmations(request):
-    # validate
     data = json.loads(request.body)
     tx_hash = data.get('hash')
 
@@ -233,11 +248,12 @@ def get_confirmations(request):
         return JsonResponse({"status": "error", "message": "Invalid transaction hash"})
 
     try:
-        return JsonResponse({"status": "success", "confirmations": blockcypher.get_num_confirmations(tx_hash,coin_symbol=config('COIN_SYMBOL'))})
+        return JsonResponse({"status": "success", "confirmations": blockcypher.get_num_confirmations(tx_hash,
+                                                                                                     coin_symbol=config(
+                                                                                                         'COIN_SYMBOL'))})
 
     except blockcypher.APIRateLimitExceeded:
         return JsonResponse({"status": "error", "message": "API rate limit exceeded. Please try again later."})
     except Exception as e:
+        print(e)
         return JsonResponse({"status": "error", "message": "Error getting confirmations"})
-
-
