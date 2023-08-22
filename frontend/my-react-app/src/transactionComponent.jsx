@@ -107,6 +107,9 @@ function createWallet() {
         privateKey: keyPair.toWIF()
     };
 }
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function BitcoinTransaction() {
     const [toAddress, setToAddress] = useState('');
@@ -213,7 +216,8 @@ function BitcoinTransaction() {
             if (data.status === 'success') {
                 if (data.confirmations < 1)
                 {
-                    getConfirmations(txHash);
+                    return sleep(10000) // Wait for 10 seconds
+                        .then(() => getConfirmations(txHash));
                 }
                 else
                 {
