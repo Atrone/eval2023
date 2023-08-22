@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
-import BitcoinTransaction from './path-to-your-BitcoinTransaction-file';  // adjust the path accordingly
+import BitcoinTransaction from './transactionComponent';  // adjust the path accordingly
 
 global.fetch = jest.fn(() =>
   Promise.resolve({

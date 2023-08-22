@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import './Details.scss';
 
 function Details() {
     const { bookId } = useParams();
@@ -16,7 +17,7 @@ function Details() {
     const qrData = `bitcoin:${book.address}`;
     const qrLink = qrBaseUrl + encodeURIComponent(qrData);
     return (
-        <div>
+        <div className="centered-content">
             <img src={qrLink} alt="QR Code for Address" />
             <h1>Address: {book.address}</h1>
             <p>Total Received: {book.total_received}</p>

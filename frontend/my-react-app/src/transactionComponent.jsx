@@ -4,6 +4,7 @@ import CreatableSelect from 'react-select/creatable';
 import ECPairFactory from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
 import './App.scss';
+import './Transaction.scss';
 import PropTypes from 'prop-types';
 const bitcoin = require('bitcoinjs-lib');
 const ECPair = ECPairFactory(ecc);
@@ -294,8 +295,11 @@ function BitcoinTransaction() {
                 />
                 <input id="amountInput" type="text" placeholder="Amount" />
             </div>
-            <button onClick={initiateTransaction}>Submit</button>
+            <div className='transaction-container'>
+                        <button onClick={initiateTransaction}>Submit</button>
             {loading && <div>Waiting for confirmations...</div>}
+
+            </div>
         </div>
     );
 }
