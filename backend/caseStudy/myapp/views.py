@@ -16,6 +16,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Address
 from decouple import config
+from bitcoin import deserialize
+
+def get_txid_from_signed_transaction(signed_hex):
+    tx_data = deserialize(signed_hex)
+    print(tx_data)
+    return tx_data['ins'][0]['outpoint']['hash']
+
 
 def validate_address(address):
     try:
@@ -136,12 +143,10 @@ def broadcast_signed_transaction(request):
 
     try:
         # Broadcast the signed transaction to the network
-        tx_details = blockcypher.pushtx(signed_tx, coin_symbol=config('COIN_SYMBOL'),
-                                        api_key=settings.BLOCKCYPHER_API_KEY)
-        return JsonResponse({"status": "success", "tx_details": tx_details})
-
-    except blockcypher.APIRateLimitExceeded:
-        return JsonResponse({"status": "error", "message": "API rate limit exceeded. Please try again later."})
+        if not blockcypher.pushtx(signed_tx, coin_symbol=config('COIN_SYMBOL'),
+                                        api_key=settings.BLOCKCYPHER_API_KEY):
+            return JsonResponse({"status": "error", "message": "Error broadcasting the transaction"})
+        return JsonResponse({"status": "success", "tx_details": get_txid_from_signed_transaction(signed_tx)})
     except Exception as e:
         return JsonResponse({"status": "error", "message": "Error broadcasting the transaction"})
 
@@ -215,11 +220,10 @@ def is_valid_tx_hash(tx_hash):
         return False
 
 
-@require_GET
+@require_POST
 def get_confirmations(request):
     # validate
     data = json.loads(request.body)
-
     tx_hash = data.get('hash')
 
     if not tx_hash:

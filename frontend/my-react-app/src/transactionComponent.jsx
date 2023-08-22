@@ -4,11 +4,12 @@ import CreatableSelect from 'react-select/creatable';
 import ECPairFactory from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
 import './App.scss';
+import PropTypes from 'prop-types';
 const bitcoin = require('bitcoinjs-lib');
-const { address } = require('bitcoinjs-lib');
 const ECPair = ECPairFactory(ecc);
 
 const TESTNET = bitcoin.networks.testnet;
+
 
 const CustomOption = (props) => {
     const handleDetailsClick = (e) => {
@@ -27,9 +28,19 @@ const CustomOption = (props) => {
     );
 };
 
-function AddressDropdown({ placeholder, fetchEndpoint, createEndpoint, onAddressChange }) {
+CustomOption.propTypes = {
+    data: PropTypes.shape({
+        value: PropTypes.string.isRequired
+    }).isRequired,
+    innerProps: PropTypes.object,
+    selectOption: PropTypes.func.isRequired,
+    option: PropTypes.object,
+    label: PropTypes.string.isRequired
+};
+
+
+function AddressDropdown({ placeholder, fetchEndpoint, createEndpoint, onAddressChange: onAddressChangeProp }) {
     const [options, setOptions] = useState([]);
-    const [selectedOption, setSelectedOption] = useState(null);
 
     useEffect(() => {
         fetch(fetchEndpoint)
@@ -62,8 +73,7 @@ function AddressDropdown({ placeholder, fetchEndpoint, createEndpoint, onAddress
             options={options}
             placeholder={placeholder}
             onChange={(selectedOption) => {
-                setSelectedOption(selectedOption);
-                onAddressChange(selectedOption ? selectedOption.value : '');
+                onAddressChangeProp(selectedOption ? selectedOption.value : '');
             }}
             onCreateOption={handleCreateOption}  // Add this prop
             isClearable
@@ -74,11 +84,18 @@ function AddressDropdown({ placeholder, fetchEndpoint, createEndpoint, onAddress
         />
     );
 }
+AddressDropdown.propTypes = {
+    placeholder: PropTypes.string.isRequired,
+    fetchEndpoint: PropTypes.string.isRequired,
+    createEndpoint: PropTypes.string.isRequired,
+    onAddressChange: PropTypes.func.isRequired
+};
+
 
 function BitcoinTransaction() {
     const [toAddress, setToAddress] = useState('');
     const [fromAddress, setFromAddress] = useState('');
-    const [amount, setAmount] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const isValidAddress = address => {
         try {
@@ -122,10 +139,11 @@ function BitcoinTransaction() {
         psbt.finalizeAllInputs();
         const finalTransaction = psbt.extractTransaction();
 
-        return finalTransaction.toHex();;
+        return finalTransaction.toHex();
     }
 
     const broadcastTransaction = (signedTx) => {
+
         fetch('/broadcast_bitcoin/', {
             method: 'POST',
             headers: {
@@ -138,18 +156,61 @@ function BitcoinTransaction() {
         })
         .then(response => response.json())
         .then(data => {
+
             if (data.status === 'success') {
                 console.log("Transaction broadcasted successfully:", data.tx_details);
+                getConfirmations(data.tx_details)
             } else {
                 alert("Could not broadcast transaction (was it correctly signed?)")
                 console.error("Error broadcasting transaction:", data.message);
             }
         })
         .catch(error => {
+
             alert("Could not broadcast transaction (was it correctly signed?)")
             console.error("Error:", error);
         });
     }
+    const getConfirmations = (txHash) => {
+        setLoading(true);
+
+        fetch('/get_confirmations/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') // Include CSRF token if needed
+            },
+            body: JSON.stringify({
+                hash: txHash
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            setLoading(false);
+
+            if (data.status === 'success') {
+                if (data.confirmations < 1)
+                {
+                    getConfirmations(txHash);
+                }
+                else
+                {
+                    alert("Transaction confirmed!");
+                    console.log("Transaction confirmed");
+                }
+            } else {
+                alert("Could not confirm transaction")
+                console.error("Error broadcasting transaction:", data.message);
+            }
+        })
+        .catch(error => {
+            setLoading(false);
+
+            alert("Could not confirm transaction")
+            console.error("Error:", error);
+        });
+    }
+
 
     const getCookie = (name) => {
         let cookieValue = null;
@@ -234,6 +295,7 @@ function BitcoinTransaction() {
                 <input id="amountInput" type="text" placeholder="Amount" />
             </div>
             <button onClick={initiateTransaction}>Submit</button>
+            {loading && <div>Waiting for confirmations...</div>}
         </div>
     );
 }
