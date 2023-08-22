@@ -1,5 +1,5 @@
 import './polyfill'; // Ensure this is imported before any other module that might use Buffer
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import BitcoinTransaction from './transactionComponent'; // Import the new component
 import Details from './detailsComponent'; // Import the new component

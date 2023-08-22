@@ -198,7 +198,7 @@ function BitcoinTransaction() {
         })
         .then(response => response.json())
         .then(data => {
-            const signedTx = signTransaction(data.message[0],data.message[1],data.message[2],data.message[6],data.message[4], privateKeyValue);
+            const signedTx = signTransaction(data.message[0],data.message[1],data.message[2],data.message[3],data.message[4], privateKeyValue);
             // After signing, call the broadcast_signed_transaction endpoint
             broadcastTransaction(signedTx);
         })
