@@ -23,8 +23,8 @@ const CustomOption = (props) => {
 
     return (
         <div {...props.innerProps} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span onClick={() => props.selectOption(props.option)}>{props.label}</span>
-            <button onClick={handleDetailsClick} style={{ marginLeft: '10px' }}>Details</button>
+            <span style={{ marginLeft: '10px', color: 'black' }} onClick={() => props.selectOption(props.option)}>{props.label}</span>
+            <button onClick={handleDetailsClick} style={{ marginLeft: '10px', color: 'black' }}>Details</button>
         </div>
     );
 };
@@ -82,6 +82,13 @@ function AddressDropdown({ placeholder, fetchEndpoint, createEndpoint, onAddress
             components={{
                 Option: CustomOption
             }}
+            styles={{
+                option: (provided) => ({
+                    ...provided,
+                    color: 'black',
+                }),
+            }}
+
         />
     );
 }
@@ -177,13 +184,12 @@ function BitcoinTransaction() {
                 console.log("Transaction broadcasted successfully:", data.tx_details);
                 getConfirmations(data.tx_details)
             } else {
-                alert("Could not broadcast transaction (was it correctly signed?)")
+                alert("Could not broadcast transaction (can you pay the transaction fee?)")
                 console.error("Error broadcasting transaction:", data.message);
             }
         })
         .catch(error => {
-
-            alert("Could not broadcast transaction (was it correctly signed?)")
+            alert("Could not broadcast transaction (can you pay the transaction fee?)")
             console.error("Error:", error);
         });
     }
@@ -260,7 +266,9 @@ function BitcoinTransaction() {
             alert("Invalid amount");
             return;
         }
+        const isConfirmed = window.confirm("Are you sure you want to continue?");
 
+        if (isConfirmed) {
         fetch('/send_bitcoin/', {
             method: 'POST',
             headers: {
@@ -283,8 +291,10 @@ function BitcoinTransaction() {
             alert("Could not send (did you use the correct private key?)")
             console.error("Error:", error);
         });
+        }
 
         privateKeyInput.value = ''; // clear private key field for security
+
     }
 
     return (
@@ -311,10 +321,10 @@ function BitcoinTransaction() {
                 <input id="amountInput" type="text" placeholder="Amount" />
             </div>
             <div className='transaction-container'>
-                        <button onClick={initiateTransaction}>Submit</button>
+                        <button className='black-text' onClick={initiateTransaction}>Submit</button>
             {loading && <div>Waiting for confirmations...</div>}
                     <div>
-            <button onClick={generateWallet}>Generate Wallet</button>
+            <button className='black-text' onClick={generateWallet}>Generate Wallet</button>
             {wallet && (
                 <div>
                     <div>Address: {wallet.address}</div>

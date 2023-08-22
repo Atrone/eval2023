@@ -15,6 +15,7 @@ from bit.network import get_fee
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+
 @require_POST
 def get_transaction_data(request):
     data = json.loads(request.body)
@@ -37,6 +38,7 @@ def get_transaction_data(request):
     hsh = generate_unsigned_transaction(source_address, amount, to_address)
 
     return JsonResponse({"status": "success", 'message': hsh})
+
 
 @require_POST
 def broadcast_signed_transaction(request):
@@ -65,6 +67,7 @@ def broadcast_signed_transaction(request):
         print(e)
         return JsonResponse({"status": "error", "message": "Error broadcasting the transaction"})
 
+
 @require_POST
 def get_confirmations(request):
     data = json.loads(request.body)
@@ -77,16 +80,15 @@ def get_confirmations(request):
         return JsonResponse({"status": "error", "message": "Invalid transaction hash"})
 
     try:
-        return JsonResponse({"status": "success", "confirmations": blockcypher.get_num_confirmations(tx_hash,
-                                                                                                     coin_symbol=config(
-                                                                                                         'COIN_SYMBOL'))})
+        confirmations = blockcypher.get_num_confirmations(tx_hash, coin_symbol=config('COIN_SYMBOL'))
+        print(confirmations)
+        return JsonResponse({"status": "success", "confirmations": confirmations})
 
     except blockcypher.api.RateLimitError:
         return JsonResponse({"status": "error", "message": "API rate limit exceeded. Please try again later."})
     except Exception as e:
         print(e)
         return JsonResponse({"status": "error", "message": "Error getting confirmations"})
-
 
 
 @api_view(['GET'])

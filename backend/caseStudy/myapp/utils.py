@@ -16,7 +16,6 @@ def get_txid_from_signed_transaction(signed_hex):
     return tx_id
 
 
-
 def validate_address(address):
     try:
         return blockcypher.utils.is_valid_address_for_coinsymbol(address, coin_symbol=config('COIN_SYMBOL'))
@@ -82,8 +81,6 @@ def get_source_balance(source_address):
     return blockcypher.get_address_details(source_address, coin_symbol=config('COIN_SYMBOL'))['final_balance']
 
 
-
-
 def is_valid_signed_transaction(hex_signed_transaction):
     try:
         tx = CTransaction.deserialize(bytes.fromhex(hex_signed_transaction))
@@ -99,7 +96,6 @@ def is_valid_signed_transaction(hex_signed_transaction):
     except (ValidationError, ValueError) as e:
         print(e)
         return False
-
 
 
 def fetch_new_data_for_address(bookId):

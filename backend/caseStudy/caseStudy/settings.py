@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("DJANGO_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True  # CHANGE LOGGING WHEN THIS IS FALSE. STATIC FILES NEED TO BE HOSTED DIFFERENTLY WHEN FALSE
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
@@ -50,7 +50,6 @@ ALLOWED_EXTERNAL_SERVICES = [
     "api.example.com",
     "192.168.1.100",
 ]
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
