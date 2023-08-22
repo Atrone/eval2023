@@ -91,12 +91,27 @@ AddressDropdown.propTypes = {
     createEndpoint: PropTypes.string.isRequired,
     onAddressChange: PropTypes.func.isRequired
 };
+function createWallet() {
+    const keyPair = ECPair.makeRandom({ network: TESTNET });
+    const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: TESTNET });
 
+    return {
+        address,
+        privateKey: keyPair.toWIF()
+    };
+}
 
 function BitcoinTransaction() {
     const [toAddress, setToAddress] = useState('');
     const [fromAddress, setFromAddress] = useState('');
     const [loading, setLoading] = useState(false);
+    const [wallet, setWallet] = React.useState(null);
+
+    const generateWallet = () => {
+        const newWallet = createWallet();
+        setWallet(newWallet);
+    }
+
 
     const isValidAddress = address => {
         try {
@@ -298,6 +313,16 @@ function BitcoinTransaction() {
             <div className='transaction-container'>
                         <button onClick={initiateTransaction}>Submit</button>
             {loading && <div>Waiting for confirmations...</div>}
+                    <div>
+            <button onClick={generateWallet}>Generate Wallet</button>
+            {wallet && (
+                <div>
+                    <div>Address: {wallet.address}</div>
+                    <div>Private Key: {wallet.privateKey}</div>
+                </div>
+            )}
+        </div>
+
 
             </div>
         </div>
